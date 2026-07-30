@@ -18,10 +18,10 @@ import ObjectPlaceholder from '@/common/components/annotations/ObjectPlaceholder
 import ObjectThumbnail from '@/common/components/annotations/ObjectThumbnail';
 import ToolbarObjectContainer from '@/common/components/annotations/ToolbarObjectContainer';
 import useVideo from '@/common/components/video/editor/useVideo';
-import {BaseTracklet} from '@/common/tracker/Tracker';
+import { BaseTracklet } from '@/common/tracker/Tracker';
 import emptyFunction from '@/common/utils/emptyFunction';
-import {activeTrackletObjectIdAtom} from '@/demo/atoms';
-import {useSetAtom} from 'jotai';
+import { activeTrackletObjectIdAtom } from '@/demo/atoms';
+import { useSetAtom } from 'jotai';
 
 type Props = {
   label: string;
@@ -31,6 +31,9 @@ type Props = {
   onClick?: () => void;
   onThumbnailClick?: () => void;
 };
+
+import { useState, useRef, useEffect } from 'react';
+import { Edit } from '@carbon/icons-react';
 
 export default function ToolbarObject({
   label,
@@ -42,6 +45,19 @@ export default function ToolbarObject({
 }: Props) {
   const video = useVideo();
   const setActiveTrackletId = useSetAtom(activeTrackletObjectIdAtom);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editedLabel, setEditedLabel] = useState(label);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    setEditedLabel(label);
+  }, [label]);
+
+  useEffect(() => {
+    if (isEditing && inputRef.current) {
+      inputRef.current.focus();
+    }
+  }, [isEditing]);
 
   async function handleCancelNewObject() {
     try {
@@ -52,6 +68,22 @@ export default function ToolbarObject({
       setActiveTrackletId(null);
     }
   }
+
+  const handleRename = async () => {
+    if (editedLabel !== label) {
+      await video?.renameTracklet(tracklet.id, editedLabel);
+    }
+    setIsEditing(false);
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      handleRename();
+    } else if (e.key === 'Escape') {
+      setEditedLabel(label);
+      setIsEditing(false);
+    }
+  };
 
   if (!tracklet.isInitialized) {
     return (
@@ -68,11 +100,35 @@ export default function ToolbarObject({
     );
   }
 
+  const titleContent = isEditing ? (
+    <input
+      ref={inputRef}
+      value={editedLabel}
+      onChange={(e) => setEditedLabel(e.target.value)}
+      onBlur={handleRename}
+      onKeyDown={handleKeyDown}
+      onClick={(e) => e.stopPropagation()}
+      className="bg-gray-700 text-white px-1 rounded w-full"
+    />
+  ) : (
+    <div className="flex items-center gap-2 group">
+      <span>{label}</span>
+      <Edit
+        size={16}
+        className="opacity-0 group-hover:opacity-100 cursor-pointer text-gray-400 hover:text-white"
+        onClick={(e) => {
+          e.stopPropagation();
+          setIsEditing(true);
+        }}
+      />
+    </div>
+  );
+
   return (
     <ToolbarObjectContainer
       isActive={isActive}
       onClick={onClick}
-      title={label}
+      title={titleContent}
       subtitle=""
       thumbnail={
         <ObjectThumbnail

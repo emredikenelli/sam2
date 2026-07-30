@@ -15,9 +15,9 @@
  */
 import VideoWorkerContext from '@/common/components/video/VideoWorkerContext';
 
-import {TrackerOptions} from '@/common/tracker/Trackers';
-import {TrackerResponse} from '@/common/tracker/TrackerTypes';
-import {RLEObject} from '@/jscocotools/mask';
+import { TrackerOptions } from '@/common/tracker/Trackers';
+import { TrackerResponse } from '@/common/tracker/TrackerTypes';
+import { RLEObject } from '@/jscocotools/mask';
 
 export type Point = [x: number, y: number];
 
@@ -37,6 +37,7 @@ export type DatalessMask = {
 
 export type Tracklet = {
   id: number;
+  label: string;
   color: string;
   thumbnail: string | null;
   points: FramePoints[];
@@ -62,6 +63,7 @@ export interface ITracker {
   closeSession(): Promise<void>;
   createTracklet(): void;
   deleteTracklet(trackletId: number): Promise<void>;
+  renameTracklet(trackletId: number, name: string): Promise<void>;
   updatePoints(
     frameIndex: number,
     objectId: number,
@@ -83,6 +85,7 @@ export abstract class Tracker implements ITracker {
   abstract closeSession(): Promise<void>;
   abstract createTracklet(): void;
   abstract deleteTracklet(trackletId: number): Promise<void>;
+  abstract renameTracklet(trackletId: number, name: string): Promise<void>;
   abstract updatePoints(
     frameIndex: number,
     objectId: number,

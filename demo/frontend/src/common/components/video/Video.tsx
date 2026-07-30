@@ -13,10 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {BaseTracklet, SegmentationPoint} from '@/common/tracker/Tracker';
-import {TrackerOptions, Trackers} from '@/common/tracker/Trackers';
-import {PauseFilled, PlayFilledAlt} from '@carbon/icons-react';
-import stylex, {StyleXStyles} from '@stylexjs/stylex';
+import { BaseTracklet, SegmentationPoint } from '@/common/tracker/Tracker';
+import { TrackerOptions, Trackers } from '@/common/tracker/Trackers';
+import { PauseFilled, PlayFilledAlt } from '@carbon/icons-react';
+import stylex, { StyleXStyles } from '@stylexjs/stylex';
 import {
   CSSProperties,
   forwardRef,
@@ -25,21 +25,21 @@ import {
   useMemo,
   useRef,
 } from 'react';
-import {Button} from 'react-daisyui';
+import { Button } from 'react-daisyui';
 
-import {EffectIndex, Effects} from '@/common/components/video/effects/Effects';
+import { EffectIndex, Effects } from '@/common/components/video/effects/Effects';
 import useReportError from '@/common/error/useReportError';
 import Logger from '@/common/logger/Logger';
-import {isPlayingAtom, isVideoLoadingAtom} from '@/demo/atoms';
-import {color} from '@/theme/tokens.stylex';
-import {useAtom} from 'jotai';
+import { isPlayingAtom, isVideoLoadingAtom } from '@/demo/atoms';
+import { color } from '@/theme/tokens.stylex';
+import { useAtom } from 'jotai';
 import useResizeObserver from 'use-resize-observer';
 import VideoLoadingOverlay from './VideoLoadingOverlay';
 import {
   StreamingStateUpdateEvent,
   VideoWorkerEventMap,
 } from './VideoWorkerBridge';
-import {EffectOptions} from './effects/Effect';
+import { EffectOptions } from './effects/Effect';
 import useVideoWorker from './useVideoWorker';
 
 const styles = stylex.create({
@@ -120,8 +120,10 @@ export type VideoRef = {
   logAnnotations(): void;
   createTracklet(): Promise<BaseTracklet>;
   deleteTracklet(trackletId: number): Promise<void>;
+  renameTracklet(trackletId: number, name: string): Promise<void>;
   updatePoints(trackletId: number, points: SegmentationPoint[]): void;
   clearPointsInVideo(): Promise<boolean>;
+  getTimestamps(): Promise<number[]>;
   getWorker_ONLY_USE_WITH_CAUTION(): Worker;
 };
 
@@ -244,11 +246,17 @@ export default forwardRef<VideoRef, Props>(function Video(
       deleteTracklet(trackletId: number): Promise<void> {
         return bridge.deleteTracklet(trackletId);
       },
+      renameTracklet(trackletId: number, name: string): Promise<void> {
+        return bridge.renameTracklet(trackletId, name);
+      },
       updatePoints(trackletId: number, points: SegmentationPoint[]): void {
         bridge.updatePoints(trackletId, points);
       },
       clearPointsInVideo(): Promise<boolean> {
         return bridge.clearPointsInVideo();
+      },
+      getTimestamps(): Promise<number[]> {
+        return bridge.getTimestamps();
       },
       getWorker_ONLY_USE_WITH_CAUTION() {
         return bridge.getWorker_ONLY_USE_WITH_CAUTION();

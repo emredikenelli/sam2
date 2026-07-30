@@ -18,7 +18,7 @@ import {
   ImageFrame,
   decodeStream,
 } from '@/common/codecs/VideoDecoder';
-import {encode as encodeVideo} from '@/common/codecs/VideoEncoder';
+import { encode as encodeVideo } from '@/common/codecs/VideoEncoder';
 import {
   Effect,
   EffectActionPoint,
@@ -30,17 +30,17 @@ import AllEffects, {
   Effects,
 } from '@/common/components/video/effects/Effects';
 import Logger from '@/common/logger/Logger';
-import {Mask, SegmentationPoint, Tracklet} from '@/common/tracker/Tracker';
-import {streamFile} from '@/common/utils/FileUtils';
-import {Stats} from '@/debug/stats/Stats';
-import {VIDEO_WATERMARK_TEXT} from '@/demo/DemoConfig';
+import { Mask, SegmentationPoint, Tracklet } from '@/common/tracker/Tracker';
+import { streamFile } from '@/common/utils/FileUtils';
+import { Stats } from '@/debug/stats/Stats';
+import { VIDEO_WATERMARK_TEXT } from '@/demo/DemoConfig';
 import CreateFilmstripError from '@/graphql/errors/CreateFilmstripError';
 import DrawFrameError from '@/graphql/errors/DrawFrameError';
 import WebGLContextError from '@/graphql/errors/WebGLContextError';
-import {RLEObject} from '@/jscocotools/mask';
+import { RLEObject } from '@/jscocotools/mask';
 import invariant from 'invariant';
-import {CanvasForm} from 'pts';
-import {serializeError} from 'serialize-error';
+import { CanvasForm } from 'pts';
+import { serializeError } from 'serialize-error';
 import {
   DecodeResponse,
   EffectUpdateResponse,
@@ -233,7 +233,7 @@ export default class VideoWorkerContext {
       throw new Error('no decoded video');
     }
 
-    const {numFrames, fps} = this._decodedVideo;
+    const { numFrames, fps } = this._decodedVideo;
     const timePerFrame = 1000 / (fps ?? 30);
     let startTime: number | null = null;
     // The offset frame index compensate for cases where the video playback
@@ -389,7 +389,7 @@ export default class VideoWorkerContext {
     );
 
     const canvas = new OffscreenCanvas(this.width, this.height);
-    const ctx = canvas.getContext('2d', {willReadFrequently: true});
+    const ctx = canvas.getContext('2d', { willReadFrequently: true });
     invariant(
       ctx !== null,
       'cannot encode video because failed to construct offscreen canvas context',
@@ -482,6 +482,13 @@ export default class VideoWorkerContext {
     this._decodedVideo = null;
   }
 
+  public getTimestamps(): number[] {
+    if (this._decodedVideo === null) {
+      return [];
+    }
+    return this._decodedVideo.frames.map(f => f.timestamp);
+  }
+
   // TRACKER
 
   public updateTracklets(
@@ -534,7 +541,7 @@ export default class VideoWorkerContext {
 
     let renderedFirstFrame = false;
     this._decodedVideo = await decodeStream(fileStream, async progress => {
-      const {fps, height, width, numFrames, frames} = progress;
+      const { fps, height, width, numFrames, frames } = progress;
       this._decodedVideo = progress;
       if (!renderedFirstFrame) {
         renderedFirstFrame = true;
@@ -627,7 +634,7 @@ export default class VideoWorkerContext {
 
     try {
       const frame = this._decodedVideo.frames[frameIndex];
-      const {bitmap} = frame;
+      const { bitmap } = frame;
 
       this._stats.frameBmp?.begin();
 
@@ -653,7 +660,7 @@ export default class VideoWorkerContext {
 
       this._stats.maskBmp?.begin();
 
-      const effectMaskPromises = masks.map(async ({data, bounds}) => {
+      const effectMaskPromises = masks.map(async ({ data, bounds }) => {
         return {
           bounds,
           bitmap: data as RLEObject,
@@ -760,8 +767,8 @@ export default class VideoWorkerContext {
       Math.round(textBoxX + WATERMARK_BOX_HORIZONTAL_PADDING),
       Math.round(
         textBoxY +
-          WATERMARK_BOX_VERTICAL_PADDING +
-          measureGeneratedBy.actualBoundingBoxAscent,
+        WATERMARK_BOX_VERTICAL_PADDING +
+        measureGeneratedBy.actualBoundingBoxAscent,
       ),
     );
   }

@@ -28,14 +28,14 @@ export default function ObjectsToolbarHeader() {
           ? 'Review tracked objects'
           : isStreaming
             ? 'Tracking objects'
-            : 'Select objects'
+            : 'Select players and ball'
       }
       description={
         streamingState === 'full'
           ? 'Review your selected objects across the video, and continue to edit if needed. Once everything looks good, press “Next” to continue.'
           : isStreaming
             ? 'Watch the video closely for any places where your objects aren’t tracked correctly. You can also stop tracking to make additional edits.'
-            : 'Adjust the selection of your object, or add additional objects. Press “Track objects” to track your objects throughout the video.'
+            : 'Adjust the selection of players, or ball. Press “Track objects” to track the players or ball throughout the video.'
       }
       className="mb-8"
     />

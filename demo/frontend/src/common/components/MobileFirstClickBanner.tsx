@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import ChangeVideoModal from '@/common/components/gallery/ChangeVideoModal';
-import {DEMO_SHORT_NAME} from '@/demo/DemoConfig';
+// import {DEMO_SHORT_NAME} from '@/demo/DemoConfig';
 import {spacing} from '@/theme/tokens.stylex';
 import {ImageCopy} from '@carbon/icons-react';
 import stylex from '@stylexjs/stylex';
@@ -36,14 +36,10 @@ export default function MobileFirstClickBanner() {
   return (
     <div {...stylex.props(styles.container)}>
       <div className="flex text-white text-lg">
-        Click an object in the video to start
+        Please select the players and ball to track.
       </div>
       <div className="text-sm text-[#A7B3BF]">
-        <p>
-          You&apos;ll be able to use {DEMO_SHORT_NAME} to make fun edits to any
-          video by tracking objects and applying visual effects. To start, click
-          any object in the video.
-        </p>
+        <p>To start, click any player or ball in the video.</p>
       </div>
       <div className="flex items-center">
         <ChangeVideoModal

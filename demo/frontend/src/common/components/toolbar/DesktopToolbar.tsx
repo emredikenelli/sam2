@@ -16,14 +16,19 @@
 import ObjectsToolbar from '@/common/components/annotations/ObjectsToolbar';
 import EffectsToolbar from '@/common/components/effects/EffectsToolbar';
 import MoreOptionsToolbar from '@/common/components/options/MoreOptionsToolbar';
-import type {CSSProperties} from 'react';
+import type { CSSProperties } from 'react';
 
 type Props = {
   tabIndex: number;
   onTabChange: (newIndex: number) => void;
 };
 
-export default function DesktopToolbar({tabIndex, onTabChange}: Props) {
+import ExportDialog from '@/common/components/toolbar/ExportDialog';
+import { useState } from 'react';
+import { Download } from '@carbon/icons-react';
+
+export default function DesktopToolbar({ tabIndex, onTabChange }: Props) {
+  const [isExportDialogOpen, setIsExportDialogOpen] = useState(false);
   const toolbarShadow: CSSProperties = {
     boxShadow: '0px 1px 3px 1px rgba(0,0,0,.25)',
     transition: 'box-shadow 0.8s ease-out',
@@ -36,10 +41,24 @@ export default function DesktopToolbar({tabIndex, onTabChange}: Props) {
   ];
 
   return (
-    <div
-      style={toolbarShadow}
-      className="bg-graydark-800 text-white md:basis-[350px] lg:basis-[435px] shrink-0 rounded-xl">
-      {tabs[tabIndex]}
+    <div className="flex flex-col gap-2 md:basis-[350px] lg:basis-[435px] shrink-0">
+      <div
+        style={toolbarShadow}
+        className="bg-graydark-800 text-white rounded-xl">
+        {tabs[tabIndex]}
+      </div>
+      <div
+        className="bg-graydark-800 text-white rounded-xl p-3 flex justify-center items-center cursor-pointer hover:bg-graydark-700 transition-colors"
+        onClick={() => setIsExportDialogOpen(true)}
+        style={toolbarShadow}
+      >
+        <Download className="mr-2" />
+        <span className="font-medium">Export Tracking Data</span>
+      </div>
+      <ExportDialog
+        open={isExportDialogOpen}
+        onClose={() => setIsExportDialogOpen(false)}
+      />
     </div>
   );
 }

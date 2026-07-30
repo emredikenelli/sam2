@@ -13,8 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {EffectIndex, Effects} from '@/common/components/video/effects/Effects';
-import {registerSerializableConstructors} from '@/common/error/ErrorSerializationUtils';
+import { EffectIndex, Effects } from '@/common/components/video/effects/Effects';
+import { registerSerializableConstructors } from '@/common/error/ErrorSerializationUtils';
 import {
   BaseTracklet,
   SegmentationPoint,
@@ -29,6 +29,7 @@ import {
   CloseSessionRequest,
   CreateTrackletRequest,
   DeleteTrackletRequest,
+  RenameTrackletRequest,
   InitializeTrackerRequest,
   LogAnnotationsRequest,
   SessionStartFailedResponse,
@@ -42,10 +43,10 @@ import {
   TrackletDeletedResponse,
   UpdatePointsRequest,
 } from '@/common/tracker/TrackerTypes';
-import {TrackerOptions, Trackers} from '@/common/tracker/Trackers';
-import {MP4ArrayBuffer} from 'mp4box';
-import {deserializeError, type ErrorObject} from 'serialize-error';
-import {EventEmitter} from './EventEmitter';
+import { TrackerOptions, Trackers } from '@/common/tracker/Trackers';
+import { MP4ArrayBuffer } from 'mp4box';
+import { deserializeError, type ErrorObject } from 'serialize-error';
+import { EventEmitter } from './EventEmitter';
 import {
   EncodeVideoRequest,
   FilmstripRequest,
@@ -59,8 +60,10 @@ import {
   StopRequest,
   VideoWorkerRequest,
   VideoWorkerResponseMessageEvent,
+  GetTimestampsRequest,
+  GetTimestampsResponse,
 } from './VideoWorkerTypes';
-import {EffectOptions} from './effects/Effect';
+import { EffectOptions } from './effects/Effect';
 
 registerSerializableConstructors();
 
@@ -90,9 +93,9 @@ export type EncodingCompletedEvent = {
   file: MP4ArrayBuffer;
 };
 
-export interface PlayEvent {}
+export interface PlayEvent { }
 
-export interface PauseEvent {}
+export interface PauseEvent { }
 
 export interface FilmstripEvent {
   filmstrip: ImageBitmap;
@@ -106,7 +109,7 @@ export interface SessionStartedEvent {
   sessionId: string;
 }
 
-export interface SessionStartFailedEvent {}
+export interface SessionStartFailedEvent { }
 
 export interface TrackletCreatedEvent {
   // Do not send masks between workers and main thread because they are huge,
@@ -132,9 +135,9 @@ export interface ClearPointsInVideoEvent {
   isSuccessful: boolean;
 }
 
-export interface StreamingStartedEvent {}
+export interface StreamingStartedEvent { }
 
-export interface StreamingCompletedEvent {}
+export interface StreamingCompletedEvent { }
 
 export interface StreamingStateUpdateEvent {
   state: StreamingState;
@@ -142,6 +145,10 @@ export interface StreamingStateUpdateEvent {
 
 export interface RenderingErrorEvent {
   error: ErrorObject;
+}
+
+export interface TimestampsEvent {
+  timestamps: number[];
 }
 
 export interface VideoWorkerEventMap {
@@ -167,7 +174,9 @@ export interface VideoWorkerEventMap {
   loadstart: LoadStartEvent;
   effectUpdate: EffectUpdateEvent;
   renderingError: RenderingErrorEvent;
+  getTimestamps: TimestampsEvent;
 }
+
 
 type Metadata = {
   totalFrames: number;
@@ -292,7 +301,7 @@ export default class VideoWorkerBridge extends EventEmitter<VideoWorkerEventMap>
   }
 
   public set frame(index: number) {
-    this.sendRequest<FrameUpdateRequest>('frameUpdate', {index});
+    this.sendRequest<FrameUpdateRequest>('frameUpdate', { index });
   }
 
   createFilmstrip(width: number, height: number): Promise<ImageBitmap> {
@@ -394,8 +403,13 @@ export default class VideoWorkerBridge extends EventEmitter<VideoWorkerEventMap>
         }
       };
       this.worker.addEventListener('message', handleResponse);
-      this.sendRequest<DeleteTrackletRequest>('deleteTracklet', {trackletId});
+      this.sendRequest<DeleteTrackletRequest>('deleteTracklet', { trackletId });
     });
+  }
+
+  renameTracklet(trackletId: number, name: string): Promise<void> {
+    this.sendRequest<RenameTrackletRequest>('renameTracklet', { trackletId, name });
+    return Promise.resolve();
   }
 
   updatePoints(
@@ -469,6 +483,20 @@ export default class VideoWorkerBridge extends EventEmitter<VideoWorkerEventMap>
 
   getWorker_ONLY_USE_WITH_CAUTION(): Worker {
     return this.worker;
+  }
+
+  getTimestamps(): Promise<number[]> {
+    return new Promise((resolve) => {
+      const handleResponse = (event: MessageEvent<GetTimestampsResponse>) => {
+        if (event.data.action === 'getTimestamps') {
+          this.worker.removeEventListener('message', handleResponse);
+          resolve(event.data.timestamps);
+        }
+      };
+
+      this.worker.addEventListener('message', handleResponse);
+      this.sendRequest<GetTimestampsRequest>('getTimestamps');
+    });
   }
 
   /**

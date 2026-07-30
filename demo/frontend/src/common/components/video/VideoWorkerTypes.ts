@@ -22,9 +22,11 @@ import {
   FrameUpdateEvent,
   LoadStartEvent,
   RenderingErrorEvent,
+  TimestampsEvent,
 } from './VideoWorkerBridge';
-import {EffectOptions} from './effects/Effect';
-import type {Effects} from './effects/Effects';
+import { EffectOptions } from './effects/Effect';
+import type { Effects } from './effects/Effects';
+import { RenameTrackletRequest } from '@/common/tracker/TrackerTypes';
 
 export type Request<A, P> = {
   action: A;
@@ -73,6 +75,8 @@ export type EncodeVideoRequest = Request<'encode', unknown>;
 
 export type EnableStatsRequest = Request<'enableStats', unknown>;
 
+export type GetTimestampsRequest = Request<'getTimestamps', unknown>;
+
 export type VideoWorkerRequest =
   | SetCanvasRequest
   | SetSourceRequest
@@ -83,7 +87,9 @@ export type VideoWorkerRequest =
   | FilmstripRequest
   | SetEffectRequest
   | EncodeVideoRequest
-  | EnableStatsRequest;
+  | EnableStatsRequest
+  | GetTimestampsRequest
+  | RenameTrackletRequest;
 
 export type VideoWorkerRequestMessageEvent = MessageEvent<VideoWorkerRequest>;
 
@@ -127,6 +133,8 @@ export type LoadStartResponse = Request<'loadstart', LoadStartEvent>;
 
 export type EffectUpdateResponse = Request<'effectUpdate', EffectUpdateEvent>;
 
+export type GetTimestampsResponse = Request<'getTimestamps', TimestampsEvent>;
+
 export type VideoWorkerResponse =
   | ErrorResponse
   | FilmstripResponse
@@ -138,6 +146,7 @@ export type VideoWorkerResponse =
   | FrameUpdateResponse
   | LoadStartResponse
   | RenderingErrorResponse
-  | EffectUpdateResponse;
+  | EffectUpdateResponse
+  | GetTimestampsResponse;
 
 export type VideoWorkerResponseMessageEvent = MessageEvent<VideoWorkerResponse>;

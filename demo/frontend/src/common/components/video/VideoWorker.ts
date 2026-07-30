@@ -13,11 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {registerSerializableConstructors} from '@/common/error/ErrorSerializationUtils';
-import {Tracker} from '@/common/tracker/Tracker';
-import {TrackerRequestMessageEvent} from '@/common/tracker/TrackerTypes';
-import {TRACKER_MAPPING} from '@/common/tracker/Trackers';
-import {serializeError} from 'serialize-error';
+import { registerSerializableConstructors } from '@/common/error/ErrorSerializationUtils';
+import { Tracker } from '@/common/tracker/Tracker';
+import { TrackerRequestMessageEvent } from '@/common/tracker/TrackerTypes';
+import { TRACKER_MAPPING } from '@/common/tracker/Trackers';
+import { serializeError } from 'serialize-error';
 import VideoWorkerContext from './VideoWorkerContext';
 import {
   ErrorResponse,
@@ -62,14 +62,14 @@ self.addEventListener(
 
         // Filmstrip
         case 'filmstrip': {
-          const {width, height} = event.data;
+          const { width, height } = event.data;
           await context.createFilmstrip(width, height);
           break;
         }
 
         // Effects
         case 'setEffect': {
-          const {name, index, options} = event.data;
+          const { name, index, options } = event.data;
           await context.setEffect(name, index, options);
           break;
         }
@@ -77,6 +77,15 @@ self.addEventListener(
         // Encode
         case 'encode': {
           await context.encode();
+          break;
+        }
+
+        case 'getTimestamps': {
+          const timestamps = context.getTimestamps();
+          self.postMessage({
+            action: 'getTimestamps',
+            timestamps,
+          });
           break;
         }
 
@@ -89,7 +98,7 @@ self.addEventListener(
 
         // Tracker
         case 'initializeTracker': {
-          const {name, options} = event.data;
+          const { name, options } = event.data;
           const Tracker = TRACKER_MAPPING[name];
           // Update the endpoint for the streaming API
           tracker = new Tracker(context, options);
@@ -99,7 +108,7 @@ self.addEventListener(
           break;
         }
         case 'startSession': {
-          const {videoUrl} = event.data;
+          const { videoUrl } = event.data;
           await tracker?.startSession(videoUrl);
           break;
         }
@@ -109,17 +118,20 @@ self.addEventListener(
         case 'deleteTracklet':
           await tracker?.deleteTracklet(event.data.trackletId);
           break;
+        case 'renameTracklet':
+          await tracker?.renameTracklet(event.data.trackletId, event.data.name);
+          break;
         case 'closeSession':
           tracker?.closeSession();
           break;
         case 'updatePoints': {
-          const {frameIndex, objectId, points} = event.data;
+          const { frameIndex, objectId, points } = event.data;
           context.allowEffectAnimation(true, objectId, points);
           await tracker?.updatePoints(frameIndex, objectId, points);
           break;
         }
         case 'clearPointsInFrame': {
-          const {frameIndex, objectId} = event.data;
+          const { frameIndex, objectId } = event.data;
           await tracker?.clearPointsInFrame(frameIndex, objectId);
           break;
         }
@@ -127,7 +139,7 @@ self.addEventListener(
           await tracker?.clearPointsInVideo();
           break;
         case 'streamMasks': {
-          const {frameIndex} = event.data;
+          const { frameIndex } = event.data;
           context.allowEffectAnimation(false);
           await tracker?.streamMasks(frameIndex);
           break;

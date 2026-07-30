@@ -13,19 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {generateThumbnail} from '@/common/components/video/editor/VideoEditorUtils';
+import { generateThumbnail } from '@/common/components/video/editor/VideoEditorUtils';
 import VideoWorkerContext from '@/common/components/video/VideoWorkerContext';
 import Logger from '@/common/logger/Logger';
 import {
   SAM2ModelAddNewPointsMutation,
   SAM2ModelAddNewPointsMutation$data,
 } from '@/common/tracker/__generated__/SAM2ModelAddNewPointsMutation.graphql';
-import {SAM2ModelCancelPropagateInVideoMutation} from '@/common/tracker/__generated__/SAM2ModelCancelPropagateInVideoMutation.graphql';
-import {SAM2ModelClearPointsInFrameMutation} from '@/common/tracker/__generated__/SAM2ModelClearPointsInFrameMutation.graphql';
-import {SAM2ModelClearPointsInVideoMutation} from '@/common/tracker/__generated__/SAM2ModelClearPointsInVideoMutation.graphql';
-import {SAM2ModelCloseSessionMutation} from '@/common/tracker/__generated__/SAM2ModelCloseSessionMutation.graphql';
-import {SAM2ModelRemoveObjectMutation} from '@/common/tracker/__generated__/SAM2ModelRemoveObjectMutation.graphql';
-import {SAM2ModelStartSessionMutation} from '@/common/tracker/__generated__/SAM2ModelStartSessionMutation.graphql';
+import { SAM2ModelCancelPropagateInVideoMutation } from '@/common/tracker/__generated__/SAM2ModelCancelPropagateInVideoMutation.graphql';
+import { SAM2ModelClearPointsInFrameMutation } from '@/common/tracker/__generated__/SAM2ModelClearPointsInFrameMutation.graphql';
+import { SAM2ModelClearPointsInVideoMutation } from '@/common/tracker/__generated__/SAM2ModelClearPointsInVideoMutation.graphql';
+import { SAM2ModelCloseSessionMutation } from '@/common/tracker/__generated__/SAM2ModelCloseSessionMutation.graphql';
+import { SAM2ModelRemoveObjectMutation } from '@/common/tracker/__generated__/SAM2ModelRemoveObjectMutation.graphql';
+import { SAM2ModelStartSessionMutation } from '@/common/tracker/__generated__/SAM2ModelStartSessionMutation.graphql';
 import {
   BaseTracklet,
   Mask,
@@ -34,7 +34,7 @@ import {
   Tracker,
   Tracklet,
 } from '@/common/tracker/Tracker';
-import {TrackerOptions} from '@/common/tracker/Trackers';
+import { TrackerOptions } from '@/common/tracker/Trackers';
 import {
   ClearPointsInVideoResponse,
   SessionStartFailedResponse,
@@ -46,11 +46,11 @@ import {
   TrackletDeletedResponse,
   TrackletsUpdatedResponse,
 } from '@/common/tracker/TrackerTypes';
-import {convertMaskToRGBA} from '@/common/utils/MaskUtils';
+import { convertMaskToRGBA } from '@/common/utils/MaskUtils';
 import multipartStream from '@/common/utils/MultipartStream';
-import {Stats} from '@/debug/stats/Stats';
-import {INFERENCE_API_ENDPOINT} from '@/demo/DemoConfig';
-import {createEnvironment} from '@/graphql/RelayEnvironment';
+import { Stats } from '@/debug/stats/Stats';
+import { INFERENCE_API_ENDPOINT } from '@/demo/DemoConfig';
+import { createEnvironment } from '@/graphql/RelayEnvironment';
 import {
   DataArray,
   Masks,
@@ -59,15 +59,15 @@ import {
   encode,
   toBbox,
 } from '@/jscocotools/mask';
-import {THEME_COLORS} from '@/theme/colors';
+import { THEME_COLORS } from '@/theme/colors';
 import invariant from 'invariant';
-import {IEnvironment, commitMutation, graphql} from 'relay-runtime';
+import { IEnvironment, commitMutation, graphql } from 'relay-runtime';
 
 type Options = Pick<TrackerOptions, 'inferenceEndpoint'>;
 
 type Session = {
   id: string | null;
-  tracklets: {[id: number]: Tracklet};
+  tracklets: { [id: number]: Tracklet };
 };
 
 type StreamMasksResult = {
@@ -137,7 +137,7 @@ export class SAM2Model extends Tracker {
             },
           },
           onCompleted: response => {
-            const {sessionId} = response.startSession;
+            const { sessionId } = response.startSession;
             this._session.id = sessionId;
 
             this._sendResponse<SessionStartedResponse>('sessionStarted', {
@@ -194,7 +194,7 @@ export class SAM2Model extends Tracker {
           },
         },
         onCompleted: response => {
-          const {success} = response.closeSession;
+          const { success } = response.closeSession;
           if (success === false) {
             reject(new Error('Failed to close session'));
             return;
@@ -220,6 +220,7 @@ export class SAM2Model extends Tracker {
 
     const newTracklet = {
       id: nextId,
+      label: `Object ${nextId + 1}`,
       color: THEME_COLORS[nextId % THEME_COLORS.length],
       thumbnail: null,
       points: [],
@@ -235,6 +236,15 @@ export class SAM2Model extends Tracker {
     this._sendResponse<TrackletCreatedResponse>('trackletCreated', {
       tracklet: newTracklet,
     });
+  }
+
+  public renameTracklet(trackletId: number, name: string): Promise<void> {
+    const tracklet = this._session.tracklets[trackletId];
+    if (tracklet) {
+      tracklet.label = name;
+      this._updateTracklets();
+    }
+    return Promise.resolve();
   }
 
   public deleteTracklet(trackletId: number): Promise<void> {
@@ -267,7 +277,7 @@ export class SAM2Model extends Tracker {
           }
         `,
         variables: {
-          input: {objectId: trackletId, sessionId},
+          input: { objectId: trackletId, sessionId },
         },
         onCompleted: response => {
           const trackletUpdates = response.removeObject;
@@ -464,11 +474,11 @@ export class SAM2Model extends Tracker {
           },
         },
         onCompleted: response => {
-          const {success} = response.clearPointsInVideo;
+          const { success } = response.clearPointsInVideo;
           if (!success) {
             this._sendResponse<ClearPointsInVideoResponse>(
               'clearPointsInVideo',
-              {isSuccessful: false},
+              { isSuccessful: false },
             );
             return;
           }
@@ -592,12 +602,12 @@ export class SAM2Model extends Tracker {
     updateThumbnails: boolean,
     shouldGoToFrame: boolean = true,
   ) {
-    const {frameIndex, rleMaskList} = data;
+    const { frameIndex, rleMaskList } = data;
 
     // 1. parse and decode masks for all objects
-    for (const {objectId, rleMask} of rleMaskList) {
+    for (const { objectId, rleMask } of rleMaskList) {
       const track = this._session.tracklets[objectId];
-      const {size, counts} = rleMask;
+      const { size, counts } = rleMask;
       const rleObject: RLEObject = {
         size: [size[0], size[1]],
         counts: counts,
@@ -621,7 +631,7 @@ export class SAM2Model extends Tracker {
       track.masks[frameIndex] = mask;
 
       if (updateThumbnails && !isEmpty) {
-        const {ctx} = await this._compressMaskForCanvas(decodedMask);
+        const { ctx } = await this._compressMaskForCanvas(decodedMask);
         const frame = this._context.currentFrame as VideoFrame;
         await generateThumbnail(track, frameIndex, mask, frame, ctx);
       }
@@ -644,6 +654,7 @@ export class SAM2Model extends Tracker {
       // Notify the main thread
       const {
         id,
+        label,
         color,
         isInitialized,
         points: trackletPoints,
@@ -652,6 +663,7 @@ export class SAM2Model extends Tracker {
       } = tracklet;
       return {
         id,
+        label,
         color,
         isInitialized,
         points: trackletPoints,
@@ -673,7 +685,7 @@ export class SAM2Model extends Tracker {
     const keys = Object.keys(this._session.tracklets);
     for (const key of keys) {
       const trackletId = Number(key);
-      const tracklet = {...this._session.tracklets[trackletId], masks: []};
+      const tracklet = { ...this._session.tracklets[trackletId], masks: [] };
       this._session.tracklets[trackletId] = tracklet;
     }
     this._updateTracklets();
@@ -681,7 +693,7 @@ export class SAM2Model extends Tracker {
 
   private async _compressMaskForCanvas(
     decodedMask: DataArray,
-  ): Promise<{compressedData: Blob; ctx: OffscreenCanvasRenderingContext2D}> {
+  ): Promise<{ compressedData: Blob; ctx: OffscreenCanvasRenderingContext2D }> {
     const data = convertMaskToRGBA(decodedMask.data as Uint8Array);
 
     this._maskCanvas.width = decodedMask.shape[0];
@@ -709,9 +721,9 @@ export class SAM2Model extends Tracker {
     ctx.drawImage(this._maskCanvas, 0, 0);
     ctx.restore();
 
-    const compressedData = await canvas.convertToBlob({type: 'image/png'});
+    const compressedData = await canvas.convertToBlob({ type: 'image/png' });
 
-    return {compressedData, ctx};
+    return { compressedData, ctx };
   }
 
   private async *_streamMasksForSession(
@@ -726,7 +738,7 @@ export class SAM2Model extends Tracker {
       start_frame_index: startFrameIndex,
     };
 
-    const headers: {[name: string]: string} = Object.assign({
+    const headers: { [name: string]: string } = Object.assign({
       'Content-Type': 'application/json',
     });
 
@@ -758,16 +770,16 @@ export class SAM2Model extends Tracker {
     while (true) {
       if (abortController.signal.aborted) {
         reader.releaseLock();
-        yield {aborted: true};
+        yield { aborted: true };
         return;
       }
 
-      const {done, value} = await reader.read();
+      const { done, value } = await reader.read();
       if (done) {
         return;
       }
 
-      const {headers, body} = value;
+      const { headers, body } = value;
 
       const contentType = headers.get('Content-Type') as string;
 
@@ -775,7 +787,7 @@ export class SAM2Model extends Tracker {
         const jsonResponse = JSON.parse(textDecoder.decode(body));
         const maskResults = jsonResponse.results;
         const rleMaskList = maskResults.map(
-          (mask: {object_id: number; mask: RLEObject}) => {
+          (mask: { object_id: number; mask: RLEObject }) => {
             return {
               objectId: mask.object_id,
               rleMask: mask.mask,
@@ -813,7 +825,7 @@ export class SAM2Model extends Tracker {
               },
             },
             onCompleted: response => {
-              const {success} = response.cancelPropagateInVideo;
+              const { success } = response.cancelPropagateInVideo;
               if (!success) {
                 reject(`could not abort session ${sessionId}`);
                 return;

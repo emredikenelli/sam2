@@ -13,10 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {spacing} from '@/theme/tokens.stylex';
-import {Close} from '@carbon/icons-react';
+import { spacing } from '@/theme/tokens.stylex';
+import { Close } from '@carbon/icons-react';
 import stylex from '@stylexjs/stylex';
-import {PropsWithChildren, ReactNode} from 'react';
+import { PropsWithChildren, ReactNode } from 'react';
 
 const sharedStyles = stylex.create({
   container: {
@@ -66,7 +66,7 @@ const sharedStyles = stylex.create({
 type ToolbarObjectContainerProps = PropsWithChildren<{
   alignItems?: 'top' | 'center';
   isActive: boolean;
-  title: string;
+  title: ReactNode;
   subtitle: string;
   thumbnail: ReactNode;
   isMobile: boolean;
