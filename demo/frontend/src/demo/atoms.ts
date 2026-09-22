@@ -27,6 +27,7 @@ import {
   SegmentationPoint,
   StreamingState,
 } from '@/common/tracker/Tracker';
+import {demoObjectLimit} from '@/demo/DemoConfig';
 import type { DataArray } from '@/jscocotools/mask';
 import { atom } from 'jotai';
 
@@ -84,7 +85,7 @@ export type TrackletObject = {
   isInitialized: boolean;
 };
 
-const MAX_NUMBER_TRACKLET_OBJECTS = 100;
+const MAX_NUMBER_TRACKLET_OBJECTS = demoObjectLimit;
 
 export const activeTrackletObjectIdAtom = atom<number | null>(0);
 

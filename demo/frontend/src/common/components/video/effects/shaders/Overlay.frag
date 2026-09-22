@@ -25,10 +25,20 @@ uniform bool uBorder;
 uniform sampler2D uMaskTexture0;
 uniform sampler2D uMaskTexture1;
 uniform sampler2D uMaskTexture2;
+uniform sampler2D uMaskTexture3;
+uniform sampler2D uMaskTexture4;
+uniform sampler2D uMaskTexture5;
+uniform sampler2D uMaskTexture6;
+uniform sampler2D uMaskTexture7;
 
 uniform vec4 uMaskColor0;
 uniform vec4 uMaskColor1;
 uniform vec4 uMaskColor2;
+uniform vec4 uMaskColor3;
+uniform vec4 uMaskColor4;
+uniform vec4 uMaskColor5;
+uniform vec4 uMaskColor6;
+uniform vec4 uMaskColor7;
 
 uniform float uTime;
 uniform vec2 uClickPos;
@@ -73,86 +83,67 @@ vec2 calculateAdjustedTexCoord(vec2 vTexCoord, vec4 bbox, float aspectRatio) {
   return adjustedTexCoord;
 }
 
+void blendMask(
+  sampler2D maskTexture,
+  vec4 maskColor,
+  int maskIndex,
+  vec2 textureCoord,
+  vec2 clickCoord,
+  inout vec4 finalColor,
+  inout float totalMaskValue,
+  inout vec4 edgeColor
+) {
+  float maskValue = texture(maskTexture, textureCoord).r;
+  vec4 saturatedColor = lowerSaturation(maskColor / 255.0, 0.7);
+  vec4 plainColor = vec4(saturatedColor.rgb, 1.0);
+
+  if (uActiveMask == maskIndex && uTime < 1.1) {
+    float distanceToClick = length(clickCoord);
+    float colorFactor = abs(sin((distanceToClick - uTime) * 1.75));
+    plainColor = vec4(mix(vec4(maskColor.rgb / 255.0, 0.2), plainColor, colorFactor));
+  }
+
+  finalColor += maskValue * plainColor;
+  totalMaskValue += maskValue;
+
+  if (edgeColor.a <= 0.0) {
+    edgeColor = detectEdges(maskTexture, 1.25, maskColor / 255.0);
+  }
+}
+
 void main() {
   vec4 color = texture(uSampler, vTexCoord);
-  vec4 color1 = uMaskColor0 / 255.0;
-  vec4 color2 = uMaskColor1 / 255.0;
-  vec4 color3 = uMaskColor2 / 255.0;
-  float saturationFactor = 0.7;
   float aspectRatio = uSize.y / uSize.x;
   vec2 tvTexCoord = vec2(vTexCoord.y, vTexCoord.x);
 
   vec4 finalColor = vec4(0.0f, 0.0f, 0.0f, 0.0f);
   float totalMaskValue = 0.0f;
   vec4 edgeColor = vec4(0.0f, 0.0f, 0.0f, 0.0f);
-  float numRipples = 1.75;
-  float timeThreshold = 1.1; // can take any value from [0.0, 1.5]
   vec2 adjustedClickCoord =  calculateAdjustedTexCoord(vTexCoord, vec4(uClickPos, uClickPos + 0.1), aspectRatio);
 
   if(uNumMasks > 0) {
-    float maskValue0 = texture(uMaskTexture0, tvTexCoord).r;
-    vec4 saturatedColor = lowerSaturation(color1, saturationFactor);
-    vec4 plainColor= vec4(vec3(saturatedColor).rgb, 1.0);
-    vec4 rippleColor = vec4(color1.rgb, 0.2);
-    
-    if (uActiveMask == 0 && uTime < timeThreshold) {
-      float dist = length(adjustedClickCoord);
-      float colorFactor = abs(sin((dist - uTime) * numRipples));
-      plainColor = vec4(mix(rippleColor, plainColor, colorFactor));
-    };
-    
-    if (uTime >= timeThreshold) {
-      plainColor= vec4(vec3(saturatedColor).rgb, 1.0);
-    }
-    finalColor += maskValue0 * plainColor;
-    totalMaskValue += maskValue0;
-
-    edgeColor = detectEdges(uMaskTexture0, 1.25, color1);
+    blendMask(uMaskTexture0, uMaskColor0, 0, tvTexCoord, adjustedClickCoord, finalColor, totalMaskValue, edgeColor);
   }
   if(uNumMasks > 1) {
-    float maskValue1 = texture(uMaskTexture1, tvTexCoord).r;
-    vec4 saturatedColor = lowerSaturation(color2, saturationFactor);
-    vec4 plainColor= vec4(vec3(saturatedColor).rgb, 1.0);
-    vec4 rippleColor = vec4(color2.rgb, 0.2);
-
-    if (uActiveMask == 1 && uTime < timeThreshold) {
-      float dist = length(adjustedClickCoord);
-      float colorFactor = abs(sin((dist - uTime) * numRipples));
-      plainColor = vec4(mix(rippleColor, plainColor, colorFactor));
-    }
-
-    if (uTime >= timeThreshold) {
-      plainColor= vec4(vec3(saturatedColor).rgb, 1.0);
-    }
-    finalColor += maskValue1 * plainColor;
-    totalMaskValue += maskValue1;
-
-    if(edgeColor.a <= 0.0f) {
-      edgeColor = detectEdges(uMaskTexture1, 1.25, color2);
-    }
+    blendMask(uMaskTexture1, uMaskColor1, 1, tvTexCoord, adjustedClickCoord, finalColor, totalMaskValue, edgeColor);
   }
   if(uNumMasks > 2) {
-    float maskValue2 = texture(uMaskTexture2, tvTexCoord).r;
-    vec4 saturatedColor = lowerSaturation(color3, saturationFactor);
-    vec4 plainColor= vec4(vec3(saturatedColor).rgb, 1.0);
-    vec4 rippleColor = vec4(color3.rgb, 0.2);
-
-    if (uActiveMask == 2 && uTime < timeThreshold) {
-      float dist = length(adjustedClickCoord);
-      float colorFactor = abs(sin((dist - uTime) * numRipples));
-      plainColor = vec4(mix(rippleColor, plainColor, colorFactor));
-    }
-
-    if (uTime >= timeThreshold) {
-      plainColor= vec4(vec3(saturatedColor).rgb, 1.0);
-    }
-
-    finalColor += maskValue2 * plainColor;
-    totalMaskValue += maskValue2;
-
-    if(edgeColor.a <= 0.0f) {
-      edgeColor = detectEdges(uMaskTexture2, 1.25, color3);
-    }
+    blendMask(uMaskTexture2, uMaskColor2, 2, tvTexCoord, adjustedClickCoord, finalColor, totalMaskValue, edgeColor);
+  }
+  if(uNumMasks > 3) {
+    blendMask(uMaskTexture3, uMaskColor3, 3, tvTexCoord, adjustedClickCoord, finalColor, totalMaskValue, edgeColor);
+  }
+  if(uNumMasks > 4) {
+    blendMask(uMaskTexture4, uMaskColor4, 4, tvTexCoord, adjustedClickCoord, finalColor, totalMaskValue, edgeColor);
+  }
+  if(uNumMasks > 5) {
+    blendMask(uMaskTexture5, uMaskColor5, 5, tvTexCoord, adjustedClickCoord, finalColor, totalMaskValue, edgeColor);
+  }
+  if(uNumMasks > 6) {
+    blendMask(uMaskTexture6, uMaskColor6, 6, tvTexCoord, adjustedClickCoord, finalColor, totalMaskValue, edgeColor);
+  }
+  if(uNumMasks > 7) {
+    blendMask(uMaskTexture7, uMaskColor7, 7, tvTexCoord, adjustedClickCoord, finalColor, totalMaskValue, edgeColor);
   }
 
   if(totalMaskValue > 0.0f) {

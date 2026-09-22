@@ -16,7 +16,7 @@
 import { trackletObjectsAtom } from '@/demo/atoms';
 import { Modal } from 'react-daisyui';
 import { useAtomValue } from 'jotai';
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import useVideo from '@/common/components/video/editor/useVideo';
 import { Button } from 'react-daisyui';
 import { Download } from '@carbon/icons-react';
@@ -29,8 +29,32 @@ type Props = {
 export default function ExportDialog({ open, onClose }: Props) {
     const tracklets = useAtomValue(trackletObjectsAtom);
     const video = useVideo();
+    const modalRef = useRef<HTMLDialogElement>(null);
     const [widthInMeters, setWidthInMeters] = useState<string>('25'); // Default 25m (standard pool width)
     const [isExporting, setIsExporting] = useState(false);
+
+    useEffect(() => {
+        const modal = modalRef.current;
+        if (modal == null) {
+            return;
+        }
+
+        if (open && !modal.open) {
+            modal.showModal();
+        } else if (!open && modal.open) {
+            modal.close();
+        }
+    }, [open]);
+
+    useEffect(() => {
+        const modal = modalRef.current;
+        if (modal == null) {
+            return;
+        }
+
+        modal.addEventListener('close', onClose);
+        return () => modal.removeEventListener('close', onClose);
+    }, [onClose]);
 
     const handleExport = async () => {
         if (!video) return;
@@ -111,7 +135,10 @@ export default function ExportDialog({ open, onClose }: Props) {
     };
 
     return (
-        <Modal open={open} className="bg-gray-800 text-white p-6 rounded-xl">
+        <Modal
+            ref={modalRef}
+            className="bg-gray-800 text-white p-6 rounded-xl"
+        >
             <Modal.Header className="font-bold text-lg mb-4">
                 Export Tracking Data
             </Modal.Header>
