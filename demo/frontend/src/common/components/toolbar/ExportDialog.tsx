@@ -30,7 +30,9 @@ export default function ExportDialog({ open, onClose }: Props) {
     const tracklets = useAtomValue(trackletObjectsAtom);
     const video = useVideo();
     const modalRef = useRef<HTMLDialogElement>(null);
-    const [widthInMeters, setWidthInMeters] = useState<string>('25'); // Default 25m (standard pool width)
+    // Optional: only used to add extra x_meter/y_meter columns. Leave blank to
+    // export raw pixel coordinates only (e.g. for homography correction).
+    const [widthInMeters, setWidthInMeters] = useState<string>('');
     const [isExporting, setIsExporting] = useState(false);
 
     useEffect(() => {
@@ -64,7 +66,9 @@ export default function ExportDialog({ open, onClose }: Props) {
             const timestamps = await video.getTimestamps();
             const videoWidth = video.width;
             const realWidth = parseFloat(widthInMeters);
-            const scale = realWidth / videoWidth; // meters per pixel
+            // Only compute meter columns when a real-world width was actually provided.
+            const hasScale = widthInMeters.trim() !== '' && !isNaN(realWidth) && realWidth > 0;
+            const scale = hasScale ? realWidth / videoWidth : null; // meters per pixel
 
             const headers = [
                 'frame_index',
@@ -73,8 +77,7 @@ export default function ExportDialog({ open, onClose }: Props) {
                 'label',
                 'x_pixel',
                 'y_pixel',
-                'x_meter',
-                'y_meter',
+                ...(hasScale ? ['x_meter', 'y_meter'] : []),
             ];
             const rows: string[] = [headers.join(',')];
 
@@ -94,24 +97,23 @@ export default function ExportDialog({ open, onClose }: Props) {
                         const centerX = minX + width / 2;
                         const centerY = minY + height / 2;
 
-                        const xMeter = centerX * scale;
-                        const yMeter = centerY * scale;
-
                         const timestamp = timestamps[frameIndex] ?? -1;
                         const label = tracklet.label ?? `Object ${tracklet.id + 1}`;
 
-                        rows.push(
-                            [
-                                frameIndex,
-                                timestamp,
-                                tracklet.id,
-                                `"${label}"`,
-                                centerX.toFixed(2),
-                                centerY.toFixed(2),
-                                xMeter.toFixed(4),
-                                yMeter.toFixed(4),
-                            ].join(','),
-                        );
+                        const row = [
+                            frameIndex,
+                            timestamp,
+                            tracklet.id,
+                            `"${label}"`,
+                            centerX.toFixed(2),
+                            centerY.toFixed(2),
+                        ];
+
+                        if (hasScale && scale != null) {
+                            row.push((centerX * scale).toFixed(4), (centerY * scale).toFixed(4));
+                        }
+
+                        rows.push(row.join(','));
                     }
                 });
             });
@@ -146,17 +148,20 @@ export default function ExportDialog({ open, onClose }: Props) {
                 <div className="flex flex-col gap-4">
                     <div>
                         <label className="block text-sm font-medium mb-1">
-                            Field of View Width (Meters)
+                            Field of View Width (Meters) — optional
                         </label>
                         <div className="text-xs text-gray-400 mb-2">
-                            Enter the estimated real-world width covered by the video frame to calulcate coordinates in meters.
+                            x_pixel/y_pixel are always exported as raw pixel coordinates.
+                            Optionally enter the real-world width covered by the video frame
+                            to also add x_meter/y_meter columns. Leave blank to export pixel
+                            coordinates only.
                         </div>
                         <input
                             type="number"
                             value={widthInMeters}
                             onChange={e => setWidthInMeters(e.target.value)}
                             className="w-full bg-gray-700 border border-gray-600 rounded px-3 py-2 text-white focus:outline-none focus:border-blue-500"
-                            placeholder="e.g. 25"
+                            placeholder="e.g. 25 (leave blank for pixels only)"
                         />
                     </div>
                 </div>

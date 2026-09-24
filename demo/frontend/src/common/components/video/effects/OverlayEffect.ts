@@ -31,7 +31,9 @@ import invariant from 'invariant';
 import {CanvasForm} from 'pts';
 
 export default class OverlayEffect extends BaseGLEffect {
-  private static readonly MAX_MASKS = 8;
+  // Frame texture uses unit 0, so this must stay <= 15 to keep total texture
+  // units within the WebGL2-guaranteed minimum of 16 per fragment shader.
+  private static readonly MAX_MASKS = 15;
   private _numMasks: number = 0;
   private _numMasksUniformLocation: WebGLUniformLocation | null = null;
 

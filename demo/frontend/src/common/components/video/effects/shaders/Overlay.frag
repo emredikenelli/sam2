@@ -30,6 +30,13 @@ uniform sampler2D uMaskTexture4;
 uniform sampler2D uMaskTexture5;
 uniform sampler2D uMaskTexture6;
 uniform sampler2D uMaskTexture7;
+uniform sampler2D uMaskTexture8;
+uniform sampler2D uMaskTexture9;
+uniform sampler2D uMaskTexture10;
+uniform sampler2D uMaskTexture11;
+uniform sampler2D uMaskTexture12;
+uniform sampler2D uMaskTexture13;
+uniform sampler2D uMaskTexture14;
 
 uniform vec4 uMaskColor0;
 uniform vec4 uMaskColor1;
@@ -39,6 +46,13 @@ uniform vec4 uMaskColor4;
 uniform vec4 uMaskColor5;
 uniform vec4 uMaskColor6;
 uniform vec4 uMaskColor7;
+uniform vec4 uMaskColor8;
+uniform vec4 uMaskColor9;
+uniform vec4 uMaskColor10;
+uniform vec4 uMaskColor11;
+uniform vec4 uMaskColor12;
+uniform vec4 uMaskColor13;
+uniform vec4 uMaskColor14;
 
 uniform float uTime;
 uniform vec2 uClickPos;
@@ -144,6 +158,27 @@ void main() {
   }
   if(uNumMasks > 7) {
     blendMask(uMaskTexture7, uMaskColor7, 7, tvTexCoord, adjustedClickCoord, finalColor, totalMaskValue, edgeColor);
+  }
+  if(uNumMasks > 8) {
+    blendMask(uMaskTexture8, uMaskColor8, 8, tvTexCoord, adjustedClickCoord, finalColor, totalMaskValue, edgeColor);
+  }
+  if(uNumMasks > 9) {
+    blendMask(uMaskTexture9, uMaskColor9, 9, tvTexCoord, adjustedClickCoord, finalColor, totalMaskValue, edgeColor);
+  }
+  if(uNumMasks > 10) {
+    blendMask(uMaskTexture10, uMaskColor10, 10, tvTexCoord, adjustedClickCoord, finalColor, totalMaskValue, edgeColor);
+  }
+  if(uNumMasks > 11) {
+    blendMask(uMaskTexture11, uMaskColor11, 11, tvTexCoord, adjustedClickCoord, finalColor, totalMaskValue, edgeColor);
+  }
+  if(uNumMasks > 12) {
+    blendMask(uMaskTexture12, uMaskColor12, 12, tvTexCoord, adjustedClickCoord, finalColor, totalMaskValue, edgeColor);
+  }
+  if(uNumMasks > 13) {
+    blendMask(uMaskTexture13, uMaskColor13, 13, tvTexCoord, adjustedClickCoord, finalColor, totalMaskValue, edgeColor);
+  }
+  if(uNumMasks > 14) {
+    blendMask(uMaskTexture14, uMaskColor14, 14, tvTexCoord, adjustedClickCoord, finalColor, totalMaskValue, edgeColor);
   }
 
   if(totalMaskValue > 0.0f) {
