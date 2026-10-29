@@ -16,6 +16,10 @@
 import {useUploadVideoMutation} from '@/common/components/gallery/__generated__/useUploadVideoMutation.graphql';
 import Logger from '@/common/logger/Logger';
 import {VideoData} from '@/demo/atoms';
+import {
+  MAX_UPLOAD_FILE_SIZE,
+  MAX_UPLOAD_FILE_SIZE_BYTES,
+} from '@/demo/DemoConfig';
 import {useState} from 'react';
 import {FileRejection, FileWithPath, useDropzone} from 'react-dropzone';
 import {graphql, useMutation} from 'react-relay';
@@ -24,10 +28,6 @@ const ACCEPT_VIDEOS = {
   'video/mp4': ['.mp4'],
   'video/quicktime': ['.mov'],
 };
-
-// 70 MB default max video upload size
-const MAX_FILE_SIZE_IN_MB = 70;
-const MAX_VIDEO_UPLOAD_SIZE = MAX_FILE_SIZE_IN_MB * 1024 ** 2;
 
 type Props = {
   onUpload: (video: VideoData) => void;
@@ -73,9 +73,7 @@ export default function useUploadVideo({
       if (fileRejections.length > 0 && fileRejections[0].errors.length > 0) {
         const code = fileRejections[0].errors[0].code;
         if (code === 'file-too-large') {
-          setError(
-            `File too large. Try a video under ${MAX_FILE_SIZE_IN_MB} MB`,
-          );
+          setError(`File too large. Try a video under ${MAX_UPLOAD_FILE_SIZE}`);
           return;
         }
       }
@@ -111,7 +109,7 @@ export default function useUploadVideo({
       Logger.error(error);
       setError('File not supported.');
     },
-    maxSize: MAX_VIDEO_UPLOAD_SIZE,
+    maxSize: MAX_UPLOAD_FILE_SIZE_BYTES,
   });
 
   return {

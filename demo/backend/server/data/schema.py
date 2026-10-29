@@ -259,11 +259,13 @@ class Mutation:
 def get_file_hash(video_path_or_file) -> str:
     if isinstance(video_path_or_file, str):
         with open(video_path_or_file, "rb") as in_f:
-            result = hashlib.sha256(in_f.read()).hexdigest()
+            return get_file_hash(in_f)
     else:
         video_path_or_file.seek(0)
-        result = hashlib.sha256(video_path_or_file.read()).hexdigest()
-    return result
+        hasher = hashlib.sha256()
+        for chunk in iter(lambda: video_path_or_file.read(1024 * 1024), b""):
+            hasher.update(chunk)
+        return hasher.hexdigest()
 
 
 def _get_start_sec_duration_sec(
@@ -297,7 +299,7 @@ def process_video(
         in_path = f"{tempdir}/in.mp4"
         out_path = f"{tempdir}/out.mp4"
         with open(in_path, "wb") as in_f:
-            in_f.write(file.read())
+            shutil.copyfileobj(file, in_f)
 
         try:
             video_metadata = get_video_metadata(in_path)

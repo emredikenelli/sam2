@@ -35,10 +35,10 @@ export const VIDEO_API_ENDPOINT = 'http://localhost:7263';
 export const INFERENCE_API_ENDPOINT = 'http://localhost:7263';
 
 export const demoObjectLimit = 16;
+export const MAX_UPLOAD_FILE_SIZE_BYTES = 3 * 1024 ** 3;
+export const MAX_UPLOAD_FILE_SIZE = '3GB';
 
 export const DEFAULT_EFFECT_LAYERS: EffectLayers = {
   background: 'Original',
   highlight: 'Overlay',
 };
-
-export const MAX_UPLOAD_FILE_SIZE = '70MB';
