@@ -119,6 +119,10 @@ gunicorn \
 
 Options for the `MODEL_SIZE` argument are "tiny", "small", "base_plus" (default), and "large".
 
+Uploaded videos are processed through their full duration by default. To limit
+upload duration, set `MAX_UPLOAD_VIDEO_DURATION` to a maximum number of seconds
+when starting the backend (for example, `MAX_UPLOAD_VIDEO_DURATION=600`).
+
 > [!WARNING]
 > Running the backend service on MPS devices can cause fatal crashes with the Gunicorn worker due to insufficient MPS memory. Try switching to CPU devices by setting the `SAM2_DEMO_FORCE_CPU_DEVICE=1` environment variable.
 

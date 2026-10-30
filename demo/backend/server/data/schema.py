@@ -272,15 +272,17 @@ def _get_start_sec_duration_sec(
     start_time_sec: Union[float, None],
     duration_time_sec: Union[float, None],
     max_time: float,
+    video_duration_sec: float,
 ) -> Tuple[float, float]:
     default_seek_t = int(os.environ.get("VIDEO_ENCODE_SEEK_TIME", "0"))
     if start_time_sec is None:
         start_time_sec = default_seek_t
 
+    available_duration = max(0.0, video_duration_sec - start_time_sec)
     if duration_time_sec is not None:
-        duration_time_sec = min(duration_time_sec, max_time)
+        duration_time_sec = min(duration_time_sec, max_time, available_duration)
     else:
-        duration_time_sec = max_time
+        duration_time_sec = min(max_time, available_duration)
     return start_time_sec, duration_time_sec
 
 
@@ -318,6 +320,7 @@ def process_video(
             max_time=max_time,
             start_time_sec=start_time_sec,
             duration_time_sec=duration_time_sec,
+            video_duration_sec=video_metadata.duration_sec,
         )
 
         # Transcode video to make sure videos returned to the app are all in
